@@ -1,0 +1,7 @@
+---
+
+docker_deploy_git_branch: main
+
+docker_deploy_base_dir: /srv/docker
+
+...

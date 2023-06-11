@@ -1,0 +1,27 @@
+---
+
+dependencies:
+  - name: dreknix.systemd
+    src: git+https://github.com/dreknix/ansible-role-systemd.git
+  - name: dreknix.docker
+    src: git+https://github.com/dreknix/ansible-role-docker.git
+
+galaxy_info:
+  role_name: docker_deploy
+  author: dreknix
+  description: Ansible role for deploying Docker compose instances
+  license: MIT
+  min_ansible_version: 2.4
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+  galaxy_tags:
+    - debian
+    - ubuntu
+    - docker
+
+...
