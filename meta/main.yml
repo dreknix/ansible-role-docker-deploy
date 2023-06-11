@@ -1,11 +1,5 @@
 ---
 
-dependencies:
-  - name: dreknix.systemd
-    src: git+https://github.com/dreknix/ansible-role-systemd.git
-  - name: dreknix.docker
-    src: git+https://github.com/dreknix/ansible-role-docker.git
-
 galaxy_info:
   role_name: docker_deploy
   author: dreknix
