@@ -46,19 +46,17 @@
     mode: "u=rw,go=r"
   with_items: "{{ docker_deploy_templates }}"
 
-# TODO: create Docker volumes
-# - name: Create Docker volumes
-#   become: true
-#   ansible.builtin.command: docker volume create "{{ item }}"
-#   with_items: "{{ docker_deploy_volumes | default([]) }}"
-#   changed_when: false
+- name: Create Docker volumes
+  become: true
+  ansible.builtin.command: docker volume create "{{ item }}"
+  with_items: "{{ docker_deploy_volumes | default([]) }}"
+  changed_when: false
 
-# TODO: create Docker networks
-# - name: Create Docker networks
-#   become: true
-#   ansible.builtin.command: docker network create "{{ item }}"
-#   with_items: "{{ docker_deploy_networks | default([]) }}"
-#   changed_when: false
+- name: Create Docker networks
+  become: true
+  ansible.builtin.command: docker network create "{{ item }}"
+  with_items: "{{ docker_deploy_networks | default([]) }}"
+  changed_when: false
 
 # TODO: run `docker compose build` if some thing has changed and `docker_deploy_build` is true
 

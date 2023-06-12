@@ -1,7 +1,18 @@
 ---
 
+# default git branch for checkout
 docker_deploy_git_branch: main
 
+# base directory for all Docker compose instances
 docker_deploy_base_dir: /srv/docker
+
+# build Docker images before startup
+docker_deploy_build: false
+
+# list of volumes
+docker_deploy_volumes: []
+
+# list of networks
+docker_deploy_networks: []
 
 ...
