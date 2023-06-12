@@ -54,7 +54,8 @@
 
 - name: Create Docker networks
   become: true
-  ansible.builtin.command: docker network create "{{ item }}"
+  community.docker.docker_network:
+    name: "{{ item }}"
   with_items: "{{ docker_deploy_networks | default([]) }}"
   changed_when: false
 
