@@ -23,7 +23,7 @@
   ansible.builtin.file:
     path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | dirname }}'
     state: directory
-  with_items: '{{ docker_deploy_files | default([]) }}'
+  loop: '{{ docker_deploy_files | default([]) }}'
 
 - name: Touch files
   become: true
@@ -33,14 +33,15 @@
     modification_time: preserve
     access_time: preserve
     mode: '{{ item.mode }}'
-  with_items: '{{ docker_deploy_files | default([]) }}'
+  loop: '{{ docker_deploy_files | default([]) }}'
 
 - name: Make sure destination directories for templates exists
   become: true
   ansible.builtin.file:
     path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | dirname }}'
     state: directory
-  with_items: '{{ docker_deploy_templates }}'
+  loop: '{{ docker_deploy_templates }}'
+  when: item.state == file
 
 - name: Deploy file templates
   become: true
@@ -48,20 +49,21 @@
     src: '{{ docker_deploy_template_prefix | default(".")}}/{{ item.path }}'
     dest: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ (item.path | split).0 }}'
     mode: '{{ item.mode | default("0755") }}'
-  with_items: '{{ docker_deploy_templates }}'
+  loop: '{{ docker_deploy_templates }}'
+  when: item.state == file
   register: docker_deploy_template_status
 
 - name: Create Docker volumes
   become: true
   ansible.builtin.command: docker volume create '{{ item }}'
-  with_items: '{{ docker_deploy_volumes | default([]) }}'
+  loop: '{{ docker_deploy_volumes | default([]) }}'
   changed_when: false
 
 - name: Create Docker networks
   become: true
   community.docker.docker_network:
     name: '{{ item }}'
-  with_items: '{{ docker_deploy_networks | default([]) }}'
+  loop: '{{ docker_deploy_networks | default([]) }}'
   changed_when: false
 
 - name: Create docker-compose@{{ docker_deploy_name }}.service
