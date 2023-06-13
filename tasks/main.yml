@@ -45,7 +45,7 @@
 - name: Deploy file templates
   become: true
   ansible.builtin.template:
-    src: '{{ item.path }}'
+    src: '{{ docker_deploy_template_prefix | default(".")}}/{{ item.path }}'
     dest: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ (item.path | split).0 }}'
     mode: '{{ item.mode | default("0755") }}'
   with_items: '{{ docker_deploy_templates }}'
