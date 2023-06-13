@@ -3,65 +3,65 @@
 - name: Clone Docker instance repository
   become: true
   ansible.builtin.git:
-    repo: "{{ docker_deploy_git_repo }}"
-    dest: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}"
+    repo: '{{ docker_deploy_git_repo }}'
+    dest: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
     single_branch: true
     accept_hostkey: true
-    version: "{{ docker_deploy_git_branch }}"
+    version: '{{ docker_deploy_git_branch }}'
   when: docker_deploy_git_repo is defined
   register: docker_deploy_git_status
 
 - name: Create Docker instance directory
   become: true
   ansible.builtin.file:
-    path: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}"
+    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
     state: directory
   when: docker_deploy_git_repo is not defined
 
 - name: Make sure destination directories for files exists
   become: true
   ansible.builtin.file:
-    path: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | dirname }}"
+    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | dirname }}'
     state: directory
-  with_items: "{{ docker_deploy_files | default([]) }}"
+  with_items: '{{ docker_deploy_files | default([]) }}'
 
 - name: Touch files
   become: true
   ansible.builtin.file:
-    path: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path }}"
+    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path }}'
     state: touch
     modification_time: preserve
     access_time: preserve
-    mode: "{{ item.mode }}"
-  with_items: "{{ docker_deploy_files | default([]) }}"
+    mode: '{{ item.mode }}'
+  with_items: '{{ docker_deploy_files | default([]) }}'
 
 - name: Make sure destination directories for templates exists
   become: true
   ansible.builtin.file:
-    path: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.dest | dirname }}"
+    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | dirname }}'
     state: directory
-  with_items: "{{ docker_deploy_templates }}"
+  with_items: '{{ docker_deploy_templates }}'
 
 - name: Deploy file templates
   become: true
   ansible.builtin.template:
-    src: "{{ item.src }}"
-    dest: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.dest }}"
-    mode: "u=rw,go=r"
-  with_items: "{{ docker_deploy_templates }}"
+    src: '{{ item.path }}'
+    dest: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ (item.path | split).0 }}'
+    mode: '{{ item.mode | default("0755") }}'
+  with_items: '{{ docker_deploy_templates }}'
   register: docker_deploy_template_status
 
 - name: Create Docker volumes
   become: true
-  ansible.builtin.command: docker volume create "{{ item }}"
-  with_items: "{{ docker_deploy_volumes | default([]) }}"
+  ansible.builtin.command: docker volume create '{{ item }}'
+  with_items: '{{ docker_deploy_volumes | default([]) }}'
   changed_when: false
 
 - name: Create Docker networks
   become: true
   community.docker.docker_network:
-    name: "{{ item }}"
-  with_items: "{{ docker_deploy_networks | default([]) }}"
+    name: '{{ item }}'
+  with_items: '{{ docker_deploy_networks | default([]) }}'
   changed_when: false
 
 - name: Create docker-compose@{{ docker_deploy_name }}.service
