@@ -4,7 +4,7 @@
 docker_deploy_git_branch: main
 
 # base directory for all Docker compose instances
-docker_deploy_base_dir: /srv/docker
+docker_deploy_base_dir: "{{ docker_compose_base_dir }}"
 
 # build Docker images before startup
 docker_deploy_build: false
