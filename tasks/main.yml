@@ -41,6 +41,8 @@
     path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | dirname }}'
     state: directory
   loop: '{{ docker_deploy_templates }}'
+  loop_control:
+    label: "{{ item.path }}"
   when: item.state == 'directory'
 
 - name: Deploy file templates
@@ -50,6 +52,8 @@
     dest: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ (item.path | split).0 }}'
     mode: '{{ item.mode | default("0755") }}'
   loop: '{{ docker_deploy_templates }}'
+  loop_control:
+    label: "{{ item.path }}"
   when: item.state == 'file'
   register: docker_deploy_template_status
 
