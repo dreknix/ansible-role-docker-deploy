@@ -62,10 +62,20 @@
   with_items: "{{ docker_deploy_networks | default([]) }}"
   changed_when: false
 
-# TODO: run `docker compose build` if some thing has changed and `docker_deploy_build` is true
+- name: Create docker-compose@{{ docker_deploy_name }}.service
+  become: true
+  ansible.builtin.systemd:
+    name: docker-compose@{{ docker_deploy_name }}.service
+    enabled: true
+    masked: false
+    # when: docker_env_config.changed or docker_compose_files.changed
 
-# TODO: create a link for systemd
-
-# TODO: reload systemd
+- name: Restart docker-compose@{{ docker_deploy_name }}.service
+  become: true
+  ansible.builtin.systemd:
+    name: docker-compose@{{ docker_deploy_name }}.service
+    daemon_reload: true
+    state: restarted
+    # when: docker_env_config.changed or docker_compose_files.changed
 
 ...
