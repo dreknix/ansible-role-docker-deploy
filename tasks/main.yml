@@ -9,6 +9,7 @@
     accept_hostkey: true
     version: "{{ docker_deploy_git_branch }}"
   when: docker_deploy_git_repo is defined
+  register: docker_deploy_git_status
 
 - name: Create Docker instance directory
   become: true
@@ -48,6 +49,7 @@
     dest: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.dest }}"
     mode: "u=rw,go=r"
   with_items: "{{ docker_deploy_templates }}"
+  register: docker_deploy_template_status
 
 - name: Create Docker volumes
   become: true
@@ -68,7 +70,8 @@
     name: docker-compose@{{ docker_deploy_name }}.service
     enabled: true
     masked: false
-    # when: docker_env_config.changed or docker_compose_files.changed
+  when: docker_deploy_git_repo is defined and docker_deploy_git_status.changed
+    or docker_deploy_template_status.changed
 
 - name: Restart docker-compose@{{ docker_deploy_name }}.service
   become: true
@@ -76,6 +79,7 @@
     name: docker-compose@{{ docker_deploy_name }}.service
     daemon_reload: true
     state: restarted
-    # when: docker_env_config.changed or docker_compose_files.changed
+  when: docker_deploy_git_repo is defined and docker_deploy_git_status.changed
+    or docker_deploy_template_status.changed
 
 ...
