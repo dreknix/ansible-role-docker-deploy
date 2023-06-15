@@ -48,7 +48,7 @@
   become: true
   ansible.builtin.template:
     src: '{{ docker_deploy_template_prefix | default(".")}}/{{ item.path }}'
-    dest: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ (item.path | split).0 }}'
+    dest: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | regex_replace("\.j2$", "") }}'
     mode: '{{ item.mode | default("0755") }}'
   loop: '{{ docker_deploy_templates | selectattr("state", "equalto", "file") }}'
   loop_control:
