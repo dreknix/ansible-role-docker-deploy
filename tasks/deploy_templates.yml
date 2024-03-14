@@ -1,0 +1,28 @@
+---
+
+- name: Gather list of templates
+  ansible.builtin.set_fact:
+    docker_deploy_templates: >-
+      {{ docker_deploy_templates | default([]) + lookup("community.general.filetree", "{{ item }}", wantlist=true) }}
+  loop: '{{ docker_deploy_template_dirs | default([]) }}'
+
+- name: Make sure destination directories for templates exists
+  become: true
+  ansible.builtin.file:
+    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item }}'
+    state: directory
+    mode: u=rwx,go=rx
+  loop: '{{ docker_deploy_templates | selectattr("state", "equalto", "directory") | map(attribute="path") | unique }}'
+
+- name: Deploy templates
+  become: true
+  ansible.builtin.template:
+    src: '{{ item.src }}'
+    dest: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | regex_replace("\.j2$", "") }}'
+    mode: '{{ item.mode | default("0755") }}'
+  loop: '{{ docker_deploy_templates | selectattr("state", "equalto", "file") }}'
+  loop_control:
+    label: "{{ item.path }}"
+  register: docker_deploy_template_status
+
+...

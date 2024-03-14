@@ -19,65 +19,24 @@
     mode: u=rwx,go=rx
   when: docker_deploy_git_repo is not defined
 
-- name: Make sure destination directories for files exists
-  become: true
-  ansible.builtin.file:
-    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | dirname }}'
-    state: directory
-    mode: u=rwx,go=rx
-  loop: '{{ docker_deploy_files | default([]) }}'
+- name: Include 'deploy_files.yml'
+  ansible.builtin.include_tasks: deploy_files.yml
+  when: docker_deploy_file_dirs is iterable and
+        docker_deploy_file_dirs | length > 0
 
-- name: Touch files
-  become: true
-  ansible.builtin.file:
-    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path }}'
-    state: touch
-    modification_time: preserve
-    access_time: preserve
-    mode: '{{ item.mode }}'
-  loop: '{{ docker_deploy_files | default([]) }}'
+- name: Include 'deploy_templates.yml'
+  ansible.builtin.include_tasks: deploy_templates.yml
+  when: docker_deploy_template_dirs is iterable and
+        docker_deploy_template_dirs | length > 0
 
-- name: Make sure destination directories for templates exists
-  become: true
-  ansible.builtin.file:
-    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | dirname }}'
-    state: directory
-    mode: u=rwx,go=rx
-  loop: '{{ docker_deploy_templates | selectattr("state", "equalto", "directory") }}'
-  loop_control:
-    label: "{{ item.path }}"
+- name: Include 'touch_files.yml'
+  ansible.builtin.include_tasks: touch_files.yml
+  when: docker_deploy_touched_files is iterable and
+        docker_deploy_touched_files | length > 0
 
-- name: Deploy file templates
-  become: true
-  ansible.builtin.template:
-    src: '{{ docker_deploy_template_prefix | default(".") }}/{{ item.path }}'
-    dest: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | regex_replace("\.j2$", "") }}'
-    mode: '{{ item.mode | default("0755") }}'
-  loop: '{{ docker_deploy_templates | selectattr("state", "equalto", "file") }}'
-  loop_control:
-    label: "{{ item.path }}"
-  register: docker_deploy_template_status
-
-- name: Gathering existing files (with git)
-  ansible.builtin.command:
-    cmd: git ls-files --others  # noqa: command-instead-of-module
-    chdir: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
-  register: existing_files
-  changed_when: false
-  when: docker_deploy_git_repo is defined
-
-- name: Gathering existing files (without git)
-  ansible.builtin.command:
-    cmd: find . -type f
-    chdir: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
-  register: existing_files
-  changed_when: false
-  when: docker_deploy_git_repo is not defined
-
-- name: DEBUG - print existing_files
-  ansible.builtin.debug:
-    var: existing_files
-    verbosity: 2
+- name: Include 'delete_unmanaged_files.yml'
+  ansible.builtin.include_tasks: delete_unmanaged_files.yml
+  when: docker_deploy_delete_unmanaged_files | default(false)
 
 - name: Create Docker volumes
   become: true
@@ -99,7 +58,9 @@
     enabled: true
     masked: false
   when: docker_deploy_git_repo is defined and docker_deploy_git_status.changed
-    or docker_deploy_template_status.changed
+    or docker_deploy_file_status.changed | default(false)
+    or docker_deploy_template_status.changed | default(false)
+    or docker_deploy_delete_status.changed | default(false)
 
 - name: Restart systemd service docker-compose@{{ docker_deploy_name }}
   become: true
@@ -108,6 +69,8 @@
     daemon_reload: true
     state: restarted
   when: docker_deploy_git_repo is defined and docker_deploy_git_status.changed
-    or docker_deploy_template_status.changed
+    or docker_deploy_file_status.changed | default(false)
+    or docker_deploy_template_status.changed | default(false)
+    or docker_deploy_delete_status.changed | default(false)
 
 ...

@@ -1,0 +1,21 @@
+---
+
+- name: Make sure destination directories for touched files exists
+  become: true
+  ansible.builtin.file:
+    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | dirname }}'
+    state: directory
+    mode: u=rwx,go=rx
+  loop: '{{ docker_deploy_touched_files | default([]) }}'
+
+- name: Touch files
+  become: true
+  ansible.builtin.file:
+    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path }}'
+    state: touch
+    modification_time: preserve
+    access_time: preserve
+    mode: '{{ item.mode | default("u=rwx,go=rx") }}'
+  loop: '{{ docker_deploy_touched_files | default([]) }}'
+
+...

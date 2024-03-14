@@ -1,10 +1,29 @@
 ---
 
+# base directory for all Docker compose instances
+docker_deploy_base_dir: "/srv/docker"
+
+# name of the Docker compose instance /srv/docker/<name>
+# must be set in playbook
+# docker_deploy_name: example
+
+# URL to a Git repository containing files for the Docker compose instance
+# docker_deploy_git_repo: https://github.com/dreknix/docker-compose-example
+
 # default git branch for checkout
 docker_deploy_git_branch: main
 
-# base directory for all Docker compose instances
-docker_deploy_base_dir: "/srv/docker"
+# list of directories with files that will be deployed
+docker_deploy_file_dirs: []
+
+# list of directories with templates that will be deployed
+docker_deploy_template_dirs: []
+
+# list of files that will be created
+docker_deploy_touched_files: []
+
+# delete unmanaged files
+docker_deploy_delete_unmanaged_files: false
 
 # build Docker images before startup
 docker_deploy_build: false
