@@ -61,6 +61,7 @@
     or docker_deploy_file_status.changed | default(false)
     or docker_deploy_template_status.changed | default(false)
     or docker_deploy_delete_status.changed | default(false)
+    or docker_deploy_touch_status.changed | default(false)
 
 - name: Restart systemd service docker-compose@{{ docker_deploy_name }}
   become: true
@@ -72,5 +73,6 @@
     or docker_deploy_file_status.changed | default(false)
     or docker_deploy_template_status.changed | default(false)
     or docker_deploy_delete_status.changed | default(false)
+    or docker_deploy_touch_status.changed | default(false)
 
 ...

@@ -17,5 +17,6 @@
     access_time: preserve
     mode: '{{ item.mode | default("u=rwx,go=rx") }}'
   loop: '{{ docker_deploy_touched_files | default([]) }}'
+  register: docker_deploy_touch_status
 
 ...

@@ -17,39 +17,43 @@ templates. The templates must be stored in a directory beneath the directory
 - name: Deploy Docker compose instances
   hosts:
     - docker_base
-  tasks:
-    - ansible_builtin.import_role:
-        name: dreknix.docker_deploy
-      vars:
-        docker_deploy_name: base
-        docker_deploy_git_repo: https://github.com/dreknix/docker-compose-base
-        docker_deploy_template_prefix: "{{ docker_deploy_name }}"
-        docker_deploy_base_templates:
-          - path: .env.j2
-            state: file
-            mode: "0755"
-        docker_deploy_base_host_templates: []
-        docker_deploy_templates: "{{ docker_deploy_base_templates + docker_deploy_base_host_templates }}"
-        docker_deploy_files:
+  vars:
+    docker_compose_instances:
+      - name: base
+        git_repo: https://github.com/dreknix/docker-compose-base
+        template_dirs:
+          - '{{ playbook_dir }}/templates/base/all'
+          - '{{ playbook_dir }}/templates/base/{{ inventory_hostname }}'
+        touched_files:
           - path: traefik-certs/acme.json
-            mode: "0600"
-        docker_deploy_volumes:
+            mode: u=rw,go=
+        delete_unmanaged_files: true
+        volumes:
           - base_portainer_data
-        docker_deploy_networks:
+        networks:
           - frontend
           - backend
+  tasks:
+    - name: Deploy Docker compose instance
+      ansible.builtin.include_role:
+        name: dreknix.docker_deploy
+      vars:
+        docker_deploy_name: '{{ docker_compose_instance.name }}'
+        docker_deploy_git_repo: '{{ docker_compose_instance.git_repo }}'
+        docker_deploy_file_dirs: '{{ docker_compose_instance.file_dirs | default([]) }}'
+        docker_deploy_template_dirs: '{{ docker_compose_instance.template_dirs | default([]) }}'
+        docker_deploy_touched_files: '{{ docker_compose_instance.touched_files | default([]) }}'
+        docker_deploy_delete_unmanaged_files: '{{ docker_compose_instance.delete_unmanaged_files | default(false) }}'
+        docker_deploy_volumes: '{{ docker_compose_instance.volumes | default([]) }}'
+        docker_deploy_networks: '{{ docker_compose_instance.networks | default([]) }}'
+      loop: '{{ docker_compose_instances }}'
+      loop_control:
+        loop_var: docker_compose_instance
 ...
 ```
 
 If the variable `docker_deploy_git_repo` is not set, a directory with the name
 `docker_deploy_name` will be created.
-
-The variable `docker_deploy_base_templates` can also be set using the
-`ansible.builtin.filetree` lookup.
-
-```yaml
-docker_deploy_base_templates: "{{ lookup('community.general.filetree', '{{ playbook_dir }}/templates/{{ docker_deploy_template_prefix }}/') }}"
-```
 
 ## Install role via `roles/requirements.yml`
 
@@ -96,4 +100,3 @@ $ ansible-galaxy role install --force --keep-scm-meta -r roles/requirements.yml
 ## License
 
 [MIT](https://github.com/dreknix/ansible-role-docker-deploy/blob/main/LICENSE)
-

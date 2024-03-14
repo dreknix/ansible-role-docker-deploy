@@ -35,14 +35,15 @@
 - name: Store managed file list
   ansible.builtin.set_fact:
     managed_files: >-
-      {{ docker_deploy_files |
+      {{ docker_deploy_files | default([]) |
          selectattr("state", "equalto", "file") |
          map(attribute="path")
-         + docker_deploy_templates |
+         + docker_deploy_templates | default([]) |
          selectattr("state", "equalto", "file") |
          map(attribute="path") |
          map("regex_replace", "\.j2$", "")
-         + (docker_deploy_touched_files | map(attribute="path")) }}
+         + (docker_deploy_touched_files | default([]) |
+         map(attribute="path")) }}
 
 # - name: DEBUG - print managed files
 #   ansible.builtin.debug:
