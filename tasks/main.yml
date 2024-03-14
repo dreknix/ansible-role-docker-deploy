@@ -16,6 +16,7 @@
   ansible.builtin.file:
     path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
     state: directory
+    mode: u=rwx,go=rx
   when: docker_deploy_git_repo is not defined
 
 - name: Make sure destination directories for files exists
@@ -23,6 +24,7 @@
   ansible.builtin.file:
     path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | dirname }}'
     state: directory
+    mode: u=rwx,go=rx
   loop: '{{ docker_deploy_files | default([]) }}'
 
 - name: Touch files
@@ -40,6 +42,7 @@
   ansible.builtin.file:
     path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | dirname }}'
     state: directory
+    mode: u=rwx,go=rx
   loop: '{{ docker_deploy_templates | selectattr("state", "equalto", "directory") }}'
   loop_control:
     label: "{{ item.path }}"
@@ -47,13 +50,34 @@
 - name: Deploy file templates
   become: true
   ansible.builtin.template:
-    src: '{{ docker_deploy_template_prefix | default(".")}}/{{ item.path }}'
+    src: '{{ docker_deploy_template_prefix | default(".") }}/{{ item.path }}'
     dest: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item.path | regex_replace("\.j2$", "") }}'
     mode: '{{ item.mode | default("0755") }}'
   loop: '{{ docker_deploy_templates | selectattr("state", "equalto", "file") }}'
   loop_control:
     label: "{{ item.path }}"
   register: docker_deploy_template_status
+
+- name: Gathering existing files (with git)
+  ansible.builtin.command:
+    cmd: git ls-files --others  # noqa: command-instead-of-module
+    chdir: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
+  register: existing_files
+  changed_when: false
+  when: docker_deploy_git_repo is defined
+
+- name: Gathering existing files (without git)
+  ansible.builtin.command:
+    cmd: find . -type f
+    chdir: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
+  register: existing_files
+  changed_when: false
+  when: docker_deploy_git_repo is not defined
+
+- name: DEBUG - print existing_files
+  ansible.builtin.debug:
+    var: existing_files
+    verbosity: 2
 
 - name: Create Docker volumes
   become: true
@@ -68,7 +92,7 @@
   loop: '{{ docker_deploy_networks | default([]) }}'
   changed_when: false
 
-- name: Create docker-compose@{{ docker_deploy_name }}.service
+- name: Create systemd service docker-compose@{{ docker_deploy_name }}
   become: true
   ansible.builtin.systemd:
     name: docker-compose@{{ docker_deploy_name }}.service
@@ -77,7 +101,7 @@
   when: docker_deploy_git_repo is defined and docker_deploy_git_status.changed
     or docker_deploy_template_status.changed
 
-- name: Restart docker-compose@{{ docker_deploy_name }}.service
+- name: Restart systemd service docker-compose@{{ docker_deploy_name }}
   become: true
   ansible.builtin.systemd:
     name: docker-compose@{{ docker_deploy_name }}.service
