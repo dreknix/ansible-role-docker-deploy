@@ -16,10 +16,10 @@ If the variable `docker_deploy_git_repo` is not set, a directory with the name
 `docker_deploy_name` will be created.
 
 ``` yaml
-- name: Deploy Docker instance gitlab-runner
+- name: Deploy Docker compose instance GitLab runner
   hosts: docker_gitlab_runner
   tasks:
-    - name: Deploy Docker instance of GitLab runner
+    - name: Import role 'dreknix.docker_deploy'
       ansible.builtin.import_role:
         name: dreknix.docker_deploy
       vars:
@@ -54,7 +54,7 @@ A more complex example:
           - frontend
           - backend
   tasks:
-    - name: Deploy Docker compose instance
+    - name: Include role 'dreknix.docker_deploy'
       ansible.builtin.include_role:
         name: dreknix.docker_deploy
       vars:

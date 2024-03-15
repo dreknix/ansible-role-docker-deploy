@@ -4,65 +4,65 @@
   become: true
   ansible.builtin.command:
     cmd: git ls-files --others  # noqa: command-instead-of-module
-    chdir: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
+    chdir: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}"
   register: command_result
   changed_when: false
   when: docker_deploy_git_repo is defined
 
 - name: Store file list
   ansible.builtin.set_fact:
-    existing_files: '{{ command_result.stdout_lines }}'
+    existing_files: "{{ command_result.stdout_lines }}"
   when: docker_deploy_git_repo is defined
 
 - name: Gathering existing files (without git)
   become: true
   ansible.builtin.command:
     cmd: find . -type f -printf "%P\n"
-    chdir: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
+    chdir: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}"
   register: command_result
   changed_when: false
   when: docker_deploy_git_repo is not defined
 
 - name: Store file list
   ansible.builtin.set_fact:
-    existing_files: '{{ command_result.stdout_lines }}'
+    existing_files: "{{ command_result.stdout_lines }}"
   when: docker_deploy_git_repo is not defined
 
 # - name: DEBUG - print existing_files
 #   ansible.builtin.debug:
-#     msg: '{{ existing_files }}'
+#     msg: "{{ existing_files }}"
 
 - name: Store managed file list
   ansible.builtin.set_fact:
     managed_files: >-
       {{ docker_deploy_files | default([]) |
-         selectattr("state", "equalto", "file") |
-         map(attribute="path")
+         selectattr('state', 'equalto', 'file') |
+         map(attribute='path')
          + docker_deploy_templates | default([]) |
-         selectattr("state", "equalto", "file") |
-         map(attribute="path") |
-         map("regex_replace", "\.j2$", "")
+         selectattr('state', 'equalto', 'file') |
+         map(attribute='path') |
+         map('regex_replace', '\.j2$', '')
          + (docker_deploy_touched_files | default([]) |
-         map(attribute="path")) }}
+         map(attribute='path')) }}
 
 # - name: DEBUG - print managed files
 #   ansible.builtin.debug:
-#     msg: '{{ managed_files }}'
+#     msg: "{{ managed_files }}"
 
 - name: Store unmanaged file list
   ansible.builtin.set_fact:
-    unmanaged_files: '{{ existing_files | difference(managed_files) | unique }}'
+    unmanaged_files: "{{ existing_files | difference(managed_files) | unique }}"
 
 # - name: DEBUG - print managed files
 #   ansible.builtin.debug:
-#     msg: '{{ unmanaged_files }}'
+#     msg: "{{ unmanaged_files }}"
 
 - name: Delete unmanaged files
   become: true
   ansible.builtin.file:
-    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item }}'
+    path: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}/{{ item }}"
     state: absent
-  with_items: '{{ unmanaged_files }}'
+  with_items: "{{ unmanaged_files }}"
   register: docker_deploy_delete_status
 
 ...

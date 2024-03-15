@@ -3,18 +3,18 @@
 - name: Clone Docker instance repository
   become: true
   ansible.builtin.git:
-    repo: '{{ docker_deploy_git_repo }}'
-    dest: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
+    repo: "{{ docker_deploy_git_repo }}"
+    dest: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}"
     single_branch: true
     accept_hostkey: true
-    version: '{{ docker_deploy_git_branch }}'
+    version: "{{ docker_deploy_git_branch }}"
   when: docker_deploy_git_repo is defined
   register: docker_deploy_git_status
 
 - name: Create Docker instance directory
   become: true
   ansible.builtin.file:
-    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
+    path: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}"
     state: directory
     mode: u=rwx,go=rx
   when: docker_deploy_git_repo is not defined
@@ -41,14 +41,14 @@
 - name: Create Docker volumes
   become: true
   ansible.builtin.command: docker volume create '{{ item }}'
-  loop: '{{ docker_deploy_volumes | default([]) }}'
+  loop: "{{ docker_deploy_volumes | default([]) }}"
   changed_when: false
 
 - name: Create Docker networks
   become: true
   community.docker.docker_network:
-    name: '{{ item }}'
-  loop: '{{ docker_deploy_networks | default([]) }}'
+    name: "{{ item }}"
+  loop: "{{ docker_deploy_networks | default([]) }}"
   changed_when: false
 
 - name: Build Docker image
