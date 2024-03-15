@@ -30,15 +30,15 @@
     success_msg: "'docker_deploy_state' is valid"
     quiet: true
 
-- name: Include 'deploy_instance.yml' for Docker instance {{ docker_deploy_name }}
+- name: Include 'deploy_instance.yml' for instance {{ docker_deploy_name }}
   ansible.builtin.include_tasks: deploy_instance.yml
   when: docker_deploy_state == 'present'
 
-- name: Include 'delete_instance.yml' for Docker instance {{ docker_deploy_name }}
+- name: Include 'delete_instance.yml' for instance {{ docker_deploy_name }}
   ansible.builtin.include_tasks: delete_instance.yml
   when: docker_deploy_state == 'absent'
 
-- name: Include 'deactivate_instance.yml' for Docker instance {{ docker_deploy_name }}
+- name: Include 'deactivate_instance.yml' for instance {{ docker_deploy_name }}
   ansible.builtin.fail:
     msg: "Not yet implemented"
   when: docker_deploy_state == 'deactivated'
