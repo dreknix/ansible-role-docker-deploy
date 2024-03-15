@@ -6,6 +6,7 @@
     repo: "{{ docker_deploy_git_repo }}"
     dest: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}"
     single_branch: true
+    force: true
     accept_hostkey: true
     version: "{{ docker_deploy_git_branch }}"
   when: docker_deploy_git_repo is defined
