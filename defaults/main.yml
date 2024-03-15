@@ -7,6 +7,9 @@ docker_deploy_base_dir: "/srv/docker"
 # must be set in playbook
 # docker_deploy_name: example
 
+# state of Docker compose instance ('present', 'absent', 'deactivated')
+docker_deploy_state: present
+
 # URL to a Git repository containing files for the Docker compose instance
 # docker_deploy_git_repo: https://github.com/dreknix/docker-compose-example
 

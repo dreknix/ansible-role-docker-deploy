@@ -1,78 +1,46 @@
 ---
 
-- name: Clone Docker instance repository
-  become: true
-  ansible.builtin.git:
-    repo: '{{ docker_deploy_git_repo }}'
-    dest: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
-    single_branch: true
-    accept_hostkey: true
-    version: '{{ docker_deploy_git_branch }}'
-  when: docker_deploy_git_repo is defined
-  register: docker_deploy_git_status
+- name: Check deploy base dir name
+  ansible.builtin.assert:
+    that:
+      - docker_deploy_base_dir is defined
+      - docker_deploy_base_dir is string
+      - docker_deploy_base_dir | length > 0
+      - docker_deploy_base_dir != '/'
+    fail_msg: "'docker_deploy_base_dir' must be a non-empty string"
+    success_msg: "'docker_deploy_base_dir' is valid"
+    quiet: true
 
-- name: Create Docker instance directory
-  become: true
-  ansible.builtin.file:
-    path: '{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}'
-    state: directory
-    mode: u=rwx,go=rx
-  when: docker_deploy_git_repo is not defined
+- name: Check instance name
+  ansible.builtin.assert:
+    that:
+      - docker_deploy_name is defined
+      - docker_deploy_name is string
+      - docker_deploy_name | length > 0
+      - "'/' not in docker_deploy_name"
+    fail_msg: "'docker_deploy_name' must be a non-empty string"
+    success_msg: "'docker_deploy_name' is valid"
+    quiet: true
 
-- name: Include 'deploy_files.yml'
-  ansible.builtin.include_tasks: deploy_files.yml
-  when: docker_deploy_file_dirs is iterable and
-        docker_deploy_file_dirs | length > 0
+- name: Check instance state
+  ansible.builtin.assert:
+    that:
+      - docker_deploy_state in ['present', 'absent', 'deactivated']
+    fail_msg: "'docker_deploy_state' must be 'present', 'absent', or 'deactivated'"
+    success_msg: "'docker_deploy_state' is valid"
+    quiet: true
 
-- name: Include 'deploy_templates.yml'
-  ansible.builtin.include_tasks: deploy_templates.yml
-  when: docker_deploy_template_dirs is iterable and
-        docker_deploy_template_dirs | length > 0
+- name: Include 'deploy_instance.yml' for Docker instance {{ docker_deploy_name }}
+  ansible.builtin.include_tasks: deploy_instance.yml
+  when: docker_deploy_state == 'present'
 
-- name: Include 'touch_files.yml'
-  ansible.builtin.include_tasks: touch_files.yml
-  when: docker_deploy_touched_files is iterable and
-        docker_deploy_touched_files | length > 0
+- name: Include 'delete_instance.yml' for Docker instance {{ docker_deploy_name }}
+  ansible.builtin.include_tasks: delete_instance.yml
+  when: docker_deploy_state == 'absent'
 
-- name: Include 'delete_unmanaged_files.yml'
-  ansible.builtin.include_tasks: delete_unmanaged_files.yml
-  when: docker_deploy_delete_unmanaged_files | default(false)
-
-- name: Create Docker volumes
-  become: true
-  ansible.builtin.command: docker volume create '{{ item }}'
-  loop: '{{ docker_deploy_volumes | default([]) }}'
-  changed_when: false
-
-- name: Create Docker networks
-  become: true
-  community.docker.docker_network:
-    name: '{{ item }}'
-  loop: '{{ docker_deploy_networks | default([]) }}'
-  changed_when: false
-
-- name: Create systemd service docker-compose@{{ docker_deploy_name }}
-  become: true
-  ansible.builtin.systemd:
-    name: docker-compose@{{ docker_deploy_name }}.service
-    enabled: true
-    masked: false
-  when: docker_deploy_git_repo is defined and docker_deploy_git_status.changed
-    or docker_deploy_file_status.changed | default(false)
-    or docker_deploy_template_status.changed | default(false)
-    or docker_deploy_delete_status.changed | default(false)
-    or docker_deploy_touch_status.changed | default(false)
-
-- name: Restart systemd service docker-compose@{{ docker_deploy_name }}
-  become: true
-  ansible.builtin.systemd:
-    name: docker-compose@{{ docker_deploy_name }}.service
-    daemon_reload: true
-    state: restarted
-  when: docker_deploy_git_repo is defined and docker_deploy_git_status.changed
-    or docker_deploy_file_status.changed | default(false)
-    or docker_deploy_template_status.changed | default(false)
-    or docker_deploy_delete_status.changed | default(false)
-    or docker_deploy_touch_status.changed | default(false)
+- name: Include 'deactivate_instance.yml' for Docker instance {{ docker_deploy_name }}
+  ansible.builtin.fail:
+    msg: "Not yet implemented"
+  when: docker_deploy_state == 'deactivated'
 
 ...

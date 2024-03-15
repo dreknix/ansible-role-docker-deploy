@@ -1,0 +1,9 @@
+---
+
+- name: Delete Docker instance {{ docker_deploy_name }}
+  become: true
+  ansible.builtin.file:
+    path: "{{ docker_deploy_base_dir }}/{{ docker_deploy_name }}"
+    state: absent
+
+...
