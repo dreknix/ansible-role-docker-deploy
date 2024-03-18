@@ -1,0 +1,20 @@
+---
+
+- name: Adjust simple Docker volume {{ docker_volume is string | ternary(docker_volume, docker_volume.name) }}
+  become: true
+  community.docker.docker_volume:
+    volume_name: "{{ docker_volume }}"
+    state: "{{ docker_volume_state }}"
+  when: docker_volume is string
+
+- name: Adjust detailed Docker volume {{ docker_volume is string | ternary(docker_volume, docker_volume.name) }}
+  become: true
+  community.docker.docker_volume:
+    volume_name: "{{ docker_volume.name | string }}"
+    state: "{{ docker_volume_state }}"
+    driver: "{{ docker_volume.driver | default('local') | string }}"
+    recreate: "{{ docker_volume.recreate | default('never') | string }}"
+    labels: "{{ docker_volume.labels | default({}) }}"
+  when: docker_volume is mapping
+
+...

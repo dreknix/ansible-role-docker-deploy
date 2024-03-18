@@ -40,40 +40,33 @@
   when: docker_deploy_delete_unmanaged_files | default(false)
 
 - name: Create Docker volumes
-  become: true
-  ansible.builtin.command: docker volume create '{{ item }}'
+  vars:
+    docker_volume_state: present
+  ansible.builtin.include_tasks: docker_volume.yml
   loop: "{{ docker_deploy_volumes | default([]) }}"
-  changed_when: false
+  loop_control:
+    loop_var: docker_volume
 
 - name: Create Docker networks
-  become: true
-  community.docker.docker_network:
-    name: "{{ item }}"
+  vars:
+    docker_network_state: present
+  ansible.builtin.include_tasks: docker_network.yml
   loop: "{{ docker_deploy_networks | default([]) }}"
-  changed_when: false
+  loop_control:
+    loop_var: docker_network
 
 - name: Build Docker images
   ansible.builtin.fail:
     msg: "Net yet implemented"
   when: docker_deploy_build
 
-- name: Create systemd service docker-compose@{{ docker_deploy_name }}
+- name: Create and start systemd service docker-compose@{{ docker_deploy_name }}
   become: true
-  ansible.builtin.systemd:
+  ansible.builtin.systemd_service:
     name: docker-compose@{{ docker_deploy_name }}.service
     enabled: true
-    masked: false
-  when: docker_deploy_git_repo is defined and docker_deploy_git_status.changed
-    or docker_deploy_file_status.changed | default(false)
-    or docker_deploy_template_status.changed | default(false)
-    or docker_deploy_delete_status.changed | default(false)
-    or docker_deploy_touch_status.changed | default(false)
-
-- name: Restart systemd service docker-compose@{{ docker_deploy_name }}
-  become: true
-  ansible.builtin.systemd:
-    name: docker-compose@{{ docker_deploy_name }}.service
     daemon_reload: true
+    masked: false
     state: restarted
   when: docker_deploy_git_repo is defined and docker_deploy_git_status.changed
     or docker_deploy_file_status.changed | default(false)

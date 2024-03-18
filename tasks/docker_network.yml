@@ -1,0 +1,21 @@
+---
+
+- name: Adjust simple Docker network {{ docker_network is string | ternary(docker_network, docker_network.name) }}
+  become: true
+  community.docker.docker_network:
+    name: "{{ docker_network }}"
+    state: "{{ docker_network_state }}"
+  when: docker_network is string
+
+- name: Adjust detailed Docker network {{ docker_network is string | ternary(docker_network, docker_network.name) }}
+  become: true
+  community.docker.docker_network:
+    name: "{{ docker_network.name | string }}"
+    state: "{{ docker_network_state }}"
+    driver: "{{ docker_network.driver | default('bridge') | string }}"
+    force: "{{ docker_network.force | default('false') | bool }}"
+    ipam_config: "{{ docker_network.ipam_config | default([]) }}"
+    labels: "{{ docker_network.labels | default({}) }}"
+  when: docker_network is mapping
+
+...
