@@ -83,7 +83,7 @@ Configure the role as read-only copy:
 ---
 # Docker/Docker-Compose
 - name: dreknix.docker_deploy
-  source: https://github.com/dreknix/ansible-role-docker-deploy.git
+  src: https://github.com/dreknix/ansible-role-docker-deploy.git
   type: git
   version: main
 ...
@@ -103,7 +103,7 @@ Configure the role as a working copy:
 ---
 # Docker/Docker-Compose
 - name: dreknix.docker_deploy
-  source: git@github.com:dreknix/ansible-role-docker-deploy.git
+  src: git@github.com:dreknix/ansible-role-docker-deploy.git
   type: git
   version: main
 ...
