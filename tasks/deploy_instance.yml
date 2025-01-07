@@ -20,6 +20,11 @@
     mode: u=rwx,go=rx
   when: docker_deploy_git_repo is not defined
 
+- name: Include 'deploy_directories.yml'
+  ansible.builtin.include_tasks: deploy_directories.yml
+  when: docker_deploy_directories is iterable and
+        docker_deploy_directories | length > 0
+
 - name: Include 'deploy_files.yml'
   ansible.builtin.include_tasks: deploy_files.yml
   when: docker_deploy_file_dirs is iterable and
