@@ -61,6 +61,7 @@ A more complex example:
         docker_deploy_name: "{{ docker_compose_instance.name }}"
         docker_deploy_state: "{{ docker_compose_instance.state | default('present') }}"
         docker_deploy_git_repo: "{{ docker_compose_instance.git_repo }}"
+        docker_deploy_directories: "{{ docker_compose_instance.directories | default([]) }}"
         docker_deploy_file_dirs: "{{ docker_compose_instance.file_dirs | default([]) }}"
         docker_deploy_template_dirs: "{{ docker_compose_instance.template_dirs | default([]) }}"
         docker_deploy_touched_files: "{{ docker_compose_instance.touched_files | default([]) }}"
