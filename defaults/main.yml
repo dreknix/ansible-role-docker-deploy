@@ -16,6 +16,9 @@ docker_deploy_state: present
 # default git branch for checkout
 docker_deploy_git_branch: main
 
+# list of directories that will be created
+docker_deploy_directories: []
+
 # list of directories with files that will be deployed
 docker_deploy_file_dirs: []
 
