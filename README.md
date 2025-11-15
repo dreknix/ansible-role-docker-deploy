@@ -19,8 +19,8 @@ If the variable `docker_deploy_git_repo` is not set, a directory with the name
 - name: Deploy Docker compose instance GitLab runner
   hosts: docker_gitlab_runner
   tasks:
-    - name: Import role 'dreknix.docker_deploy'
-      ansible.builtin.import_role:
+    - name: Include role 'dreknix.docker_deploy'
+      ansible.builtin.include_role:
         name: dreknix.docker_deploy
       vars:
         docker_deploy_name: gitlab-runner
