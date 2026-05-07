@@ -1,0 +1,28 @@
+---
+
+exclude_paths:
+  - .direnv/
+  - meta/
+
+use_default_rules: true
+# Load custom rules from this specific folder
+# rulesdir:
+#   - ./rule/directory/
+
+# Any rule that has the 'opt-in' tag will not be loaded unless its 'id' is
+# mentioned in the enable_list:
+enable_list:
+  - fqcn-builtins    # opt-in
+  - no-log-password  # opt-in
+  - no-same-owner    # opt-in
+  # add yaml here if you want to avoid ignoring yaml checks when yamllint
+  # library is missing. Normally its absence just skips using that rule.
+  - yaml
+# Report only a subset of tags and fully ignore any others
+# tags:
+#   - var-spacing
+
+# Offline mode disables installation of requirements.yml
+offline: false
+
+...
