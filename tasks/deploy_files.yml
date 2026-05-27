@@ -7,8 +7,20 @@
 - name: Gather list of files
   ansible.builtin.set_fact:
     docker_deploy_files: >-
-      {{ docker_deploy_files | default([]) + lookup('community.general.filetree', '{{ item }}', wantlist=true) }}
+      {{ (docker_deploy_files | default([])
+          + lookup('community.general.filetree', item, wantlist=true))
+         | reverse
+         | unique(attribute='path')
+         | reverse
+         | list }}
   loop: "{{ docker_deploy_file_dirs | default([]) }}"
+
+- name: Show resolved files
+  ansible.builtin.debug:
+    msg: "{{ item.state }}: {{ item.path }}{{ ' -> ' ~ item.src if item.state != 'directory' else '' }}"
+  loop: "{{ docker_deploy_files }}"
+  loop_control:
+    label: "{{ item.path }}"
 
 - name: Make sure destination directories for files exists
   become: true

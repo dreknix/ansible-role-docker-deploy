@@ -7,8 +7,20 @@
 - name: Gather list of templates
   ansible.builtin.set_fact:
     docker_deploy_templates: >-
-      {{ docker_deploy_templates | default([]) + lookup('community.general.filetree', '{{ item }}', wantlist=true) }}
+      {{ (docker_deploy_templates | default([])
+          + lookup('community.general.filetree', item, wantlist=true))
+         | reverse
+         | unique(attribute='path')
+         | reverse
+         | list }}
   loop: "{{ docker_deploy_template_dirs | default([]) }}"
+
+- name: Show resolved templates
+  ansible.builtin.debug:
+    msg: "{{ item.state }}: {{ item.path }}{{ ' -> ' ~ item.src if item.state != 'directory' else '' }}"
+  loop: "{{ docker_deploy_templates }}"
+  loop_control:
+    label: "{{ item.path }}"
 
 - name: Make sure destination directories for templates exists
   become: true
