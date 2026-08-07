@@ -1,5 +1,13 @@
 ---
 
+- name: Reset state to detect changes
+  ansible.builtin.set_fact:
+    docker_deploy_git_status: false
+    docker_deploy_file_status: false
+    docker_deploy_template_status: false
+    docker_deploy_delete_status: false
+    docker_deploy_touch_status: false
+
 - name: Clone instance repository
   become: true
   ansible.builtin.git:
